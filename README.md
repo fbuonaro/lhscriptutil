@@ -1,2 +1,2 @@
 # lhscriptutils
-scripts and utilities
+lh scripts and utilities
