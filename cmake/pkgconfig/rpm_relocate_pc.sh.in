@@ -1,0 +1,6 @@
+#!/bin/sh
+
+if [[ ! ( "x$RPM_INSTALL_PREFIX" == "x" ) ]];
+then
+    sed -i "s|prefix=@CMAKE_INSTALL_PREFIX@|prefix=$RPM_INSTALL_PREFIX|g" "$RPM_INSTALL_PREFIX/@PC_INSTALL_FILE@"
+fi

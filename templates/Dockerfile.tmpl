@@ -31,7 +31,8 @@ RUN yum -y install \
         gcc \
         gcc-c++ \
         gtest-devel \
-        make && \
+        make \
+        rpm-build && \
     yum clean all
 
 ENTRYPOINT [ "bash" ]
@@ -54,11 +55,11 @@ LABEL ${component}-dist="no"
 #     cmake3 \
 #         -DCMAKE_INSTALL_PREFIX=/usr \
 #         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-#         -DCPACK_PACKAGING_INSTALL_PREFIX=/lhdist \
+#         -DCPACK_PACKAGE_DIRECTORY=/lhdist \
 #         ../ && \
 #     make && \
-#     make package && \
-#     make test
+#     make test && \
+#     make package \
 
 ##################################################################################
 # STAGE 3 - the image with all built build/runtime dependencies, ${component} 
