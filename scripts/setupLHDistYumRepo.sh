@@ -1,18 +1,23 @@
 #!/bin/sh
 
+DIST_DIR="/lhdist"
+REPO_DIR="/lhdistrepo"
+
 yum install -y createrepo yum-utils
 
-mkdir /lhdist
+mkdir -p "${REPO_DIR}"
 
-createrepo /lhdist
+cp -rf "${DIST_DIR}/*.rpm" "${REPO_DIR}"
+
+createrepo "${REPO_DIR}"
 
 cat <<EOF > /etc/yum.repos.d/lhdist.repo
 [lhdist]
 name=LHDist Repository
-baseurl=file:///lhdist
+baseurl=file://${REPO_DIR}
 gpgcheck=0
 enabled=1
 EOF
 
-yum clean all
-yum update
+yum -y clean all
+yum -y update
