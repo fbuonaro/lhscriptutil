@@ -11,8 +11,8 @@ cp -rf "${DIST_DIR}/*.rpm" "${REPO_DIR}"
 
 createrepo "${REPO_DIR}"
 
-cat <<EOF > /etc/yum.repos.d/lhdist.repo
-[lhdist]
+cat <<EOF > /etc/yum.repos.d/lhdistrepo.repo
+[lhdistrepo]
 name=LHDist Repository
 baseurl=file://${REPO_DIR}
 gpgcheck=0
