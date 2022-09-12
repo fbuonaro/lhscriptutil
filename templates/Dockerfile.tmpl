@@ -35,6 +35,8 @@ RUN yum -y install \
         rpm-build && \
     yum clean all
 
+# ADD ./modules/lhscriptutil/scripts/refreshOrSetupLHDistYumRepo.sh /refreshOrSetupLHDistYumRepo.sh
+
 ENTRYPOINT [ "bash" ]
 
 ##################################################################################
@@ -60,6 +62,7 @@ LABEL ${component}-dist="no"
 #     make && \
 #     make test && \
 #     make package \
+# RUN /refreshOrSetupLHDistYumRepo.sh
 
 ##################################################################################
 # STAGE 3 - the image with all built build/runtime dependencies, ${component} 
