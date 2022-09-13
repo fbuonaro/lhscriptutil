@@ -1,0 +1,27 @@
+Name:       ${component}-lhdist
+Version:    1
+Release:    1
+Summary:    ${component} packaged in an RPM
+License:    See ${component}
+
+%description
+${component} packaged in an RPM
+
+%prep
+git clone https://github.com/path/to/${component}.git
+
+%build
+cd ${component}
+make DESTDIR=/usr
+
+%install
+rm -rf %{buildroot}
+mkdir -p %{buildroot}/usr
+cd ${component}
+make install DESTDIR=%{buildroot}/usr
+cd %{buildroot}
+find ./ | grep usr | cut -d '.' -f 2- > %{buildroot}/../${component}_install_files.txt
+
+%files -f %{buildroot}/../${component}_install_files.txt
+
+%changelog

@@ -24,5 +24,6 @@ fi
 
 TARGET_STAGE="${COMPONENT}-${STAGE}"
 TARGET_TAG="${COMPONENT}:${STAGE}"
+GIT_COMMIT="$(git rev-parse HEAD)"
 
-docker build --target "${TARGET_STAGE}" -t "${TARGET_TAG}" -f "${DOCKERFILE_PATH}" . || exit 3
+docker build --build-arg GIT_COMMIT="${GIT_COMMIT}" --target "${TARGET_STAGE}" -t "${TARGET_TAG}" -f "${DOCKERFILE_PATH}" . || exit 3
