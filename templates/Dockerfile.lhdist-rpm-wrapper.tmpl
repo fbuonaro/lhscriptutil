@@ -1,7 +1,14 @@
 ################################################################################## 
 # STAGE 0 - base environment with first set of runtime dependencies 
 ##################################################################################
+ARG BUILD_TAG
+ARG GIT_COMMIT
+
 FROM centos:centos7 as ${component}-lhdist-base-env
+ENV BUILD_TAG=${BUILD_TAG}
+LABEL build_tag="${BUILD_TAG}"
+ENV GIT_COMMIT=${GIT_COMMIT}
+LABEL git_commit="${GIT_COMMIT}"
 
 RUN yum -y --enablerepo=extras install epel-release && \
     yum -y install https://repo.ius.io/ius-release-el7.rpm && \
@@ -23,7 +30,8 @@ RUN yum -y install \
     yum clean all
 
 # for building an rpm package
-RUN yum -y install rpm-devel rpmlint bash coreutils diffutils patch rpmdevtools
+RUN yum -y install rpm-devel rpmlint bash coreutils diffutils patch rpmdevtools && \
+    yum -y clean all
 
 ##################################################################################
 # STAGE 2 - built and packaged ${component}
@@ -40,7 +48,7 @@ RUN cd /${component}-lhdist && \
     ./rpmdev-setuptree-at.sh ./build && \
     rpmbuild --define "_topdir ${PWD}/build"  -ba ./${component}-lhdist.spec && \
     mkdir /lhdist && \
-    cp -rf -u ./build/RPMS/*.rpm /lhdist
+    find ./build/RPMS/ | grep "\.rpm" | xargs -I{} cp -f -u {} /lhdist
 
 ##################################################################################
 # STAGE 4 - package in /lhdist
