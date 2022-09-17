@@ -31,6 +31,7 @@ RUN yum -y install \
     yum clean all
 
 # ADD ./modules/lhscriptutil/scripts/refreshOrSetupLHDistYumRepo.sh /refreshOrSetupLHDistYumRepo.sh
+# RUN /refreshOrSetupLHDistYumRepo.sh
 
 ENTRYPOINT [ "bash" ]
 

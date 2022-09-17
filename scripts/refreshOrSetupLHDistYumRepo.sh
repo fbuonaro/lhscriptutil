@@ -10,6 +10,7 @@ mkdir -p "${REPO_DIR}"
 
 cp -rf -u "${DIST_DIR}"/*.rpm "${REPO_DIR}"
 
+rm -rf "${REPO_DIR}/repodata"
 createrepo "${REPO_DIR}"
 
 cat <<EOF > /etc/yum.repos.d/${REPO_NAME}.repo
