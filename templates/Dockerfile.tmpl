@@ -2,6 +2,9 @@
 # STAGE 0 - base environment with first set of runtime dependencies
 ##################################################################################
 FROM centos:centos7 as ${component}-base-env
+ARG BUILD_TAG
+ENV BUILD_TAG=${BUILD_TAG}
+LABEL build_tag="${BUILD_TAG}}"
 ARG GIT_COMMIT
 ENV GIT_COMMIT=${GIT_COMMIT}
 LABEL git_commit="${GIT_COMMIT}"
