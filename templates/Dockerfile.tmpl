@@ -5,10 +5,6 @@ ARG BUILD_TAG
 ARG GIT_COMMIT
 
 FROM centos:centos7 as ${component}-base-env
-ENV BUILD_TAG=${BUILD_TAG}
-LABEL build_tag="${BUILD_TAG}"
-ENV GIT_COMMIT=${GIT_COMMIT}
-LABEL git_commit="${GIT_COMMIT}"
 
 RUN yum -y --enablerepo=extras install epel-release && \
     yum -y install https://repo.ius.io/ius-release-el7.rpm && \
@@ -51,8 +47,13 @@ FROM ${component}-build-env as ${component}-build
 #         ../ && \
 #     make && \
 #     make test && \
-#     make package \
-# RUN /refreshOrSetupLHDistYumRepo.sh
+#     make package && \
+#     /refreshOrSetupLHDistYumRepo.sh
+
+ENV BUILD_TAG=${BUILD_TAG}
+LABEL build_tag="${BUILD_TAG}"
+ENV GIT_COMMIT=${GIT_COMMIT}
+LABEL git_commit="${GIT_COMMIT}"
 
 ##################################################################################
 # STAGE 3 - the image with all built build/runtime dependencies, ${component} 

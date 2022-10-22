@@ -5,10 +5,6 @@ ARG BUILD_TAG
 ARG GIT_COMMIT
 
 FROM centos:centos7 as ${component}-lhdist-base-env
-ENV BUILD_TAG=${BUILD_TAG}
-LABEL build_tag="${BUILD_TAG}"
-ENV GIT_COMMIT=${GIT_COMMIT}
-LABEL git_commit="${GIT_COMMIT}"
 
 RUN yum -y --enablerepo=extras install epel-release && \
     yum -y install https://repo.ius.io/ius-release-el7.rpm && \
@@ -49,6 +45,22 @@ RUN cd /${component}-lhdist && \
     rpmbuild --define "_topdir ${PWD}/build"  -ba ./${component}-lhdist.spec && \
     mkdir /lhdist && \
     find ./build/RPMS/ | grep "\.rpm" | xargs -I{} cp -f -u {} /lhdist
+
+ENV BUILD_TAG=${BUILD_TAG}
+LABEL build_tag="${BUILD_TAG}"
+ENV GIT_COMMIT=${GIT_COMMIT}
+LABEL git_commit="${GIT_COMMIT}"
+
+##################################################################################
+# STAGE 3 - test /lhdist
+##################################################################################
+FROM {component}-lhdist-build-env as {component}-lhdist-check
+
+ADD ./modules/lhscriptutil/scripts/refreshOrSetupLHDistYumRepo.sh /refreshOrSetupLHDistYumRepo.sh
+RUN /refreshOrSetupLHDistYumRepo.sh
+RUN yum -y repo-pkgs lhdistrepo install && \
+    yum clean all
+
 
 ##################################################################################
 # STAGE 4 - package in /lhdist
