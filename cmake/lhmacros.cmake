@@ -119,7 +119,7 @@ macro(lh_add_pkgconfig)
     # install pc file
     install( FILES "${CMAKE_CURRENT_BINARY_DIR}/${PC_INSTALL_FILENAME}"
             DESTINATION "${PC_INSTALL_DIR}"
-            COMPONENT liblhcluster )
+            COMPONENT ${LH_COMPONENT_NAME} )
     # configure pc relocation script
     configure_file( "${CMAKE_SOURCE_DIR}/modules/lhscriptutil/cmake/pkgconfig/rpm_relocate_pc.sh.in"
                     "${CMAKE_CURRENT_BINARY_DIR}/rpm_relocate_pc.sh"
@@ -139,7 +139,7 @@ macro(lh_add_install_cmake_config)
 
     install( FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake" "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
             DESTINATION "${LH_INSTALL_LIBDIR}/cmake"
-            COMPONENT liblhcluster )
+            COMPONENT ${LH_COMPONENT_NAME} )
 endmacro()
 
 macro(lh_add_cpack_component)
