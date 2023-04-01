@@ -80,13 +80,13 @@ def lhBuildImage( dockerfilePath, component, stage, gitCommit, buildTag, **kwarg
     lhTags=lhBuildImageGetTags( component, stage, gitCommit, buildTag )
 
     if "ref" in kwargs:
-        fail( "lhQuickBuildImage: 'ref' cannot be in kwargs")
+        fail( "lhBuildImage: 'ref' cannot be in kwargs")
 
     if "dockerfile" in kwargs:
-        fail( "lhQuickBuildImage: 'dockerfile' cannot be in kwargs")
+        fail( "lhBuildImage: 'dockerfile' cannot be in kwargs")
 
     if "target" in kwargs:
-        fail( "lhQuickBuildImage: 'target' cannot be in kwargs")
+        fail( "lhBuildImage: 'target' cannot be in kwargs")
 
     lhCheckStage( stage )
 
