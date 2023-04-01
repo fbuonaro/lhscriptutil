@@ -1,0 +1,157 @@
+lhStages = { 
+    "build-env": None, 
+    "build": None, 
+    "test-env": None, 
+    "main": None, 
+    "dist": None,
+}
+
+LHBUILD_TAG_CFG_NAME = "lhbuild_tag"
+LHBUILD_TAG_ENV_NAME = "LHBUILD_TAG"
+config.define_string( 
+    LHBUILD_TAG_CFG_NAME, 
+    args = False, 
+    usage = "tag to annotate build with i.e. dev, prod, test; env variable %s could be used instead" % ( LHBUILD_TAG_ENV_NAME )
+)
+
+LHBUILD_STAGE_CFG_NAME = "lhbuild_stage"
+LHBUILD_STAGE_ENV_NAME = "LHBUILD_STAGE"
+config.define_string( 
+    LHBUILD_STAGE_CFG_NAME, 
+    args = False, 
+    usage = "target stage to build, must be one of %s; env variable %s could be used instead" % ( lhStages, LHBUILD_STAGE_ENV_NAME ) 
+)
+
+def lhGetGitCommit():
+    # type: () -> str
+    return str( local( "git rev-parse HEAD", quiet = True, echo_off = True) ).strip() 
+
+def lhGetFromConfigOrEnv( cfg, cfgVarName, envVarName, defaultVal ):
+    # type ( Dict[ str, any ], str, str, str ) -> str
+    # checks cfg, env for cfgVarName and envVarName respectively and in that order
+    # returns defaultVal if neither is present
+    val = cfg.get( cfgVarName, None )
+    if val != None:
+        return str(val)
+
+    val = os.getenv( envVarName, default=None )
+    if val != None:
+        return val
+
+    return defaultVal
+
+def lhBuildImageGetTags( component, stage, gitCommit, buildTag ):
+    # type: ( str, str, str, str ) -> List[ str ]
+    tags = []
+
+    tags.append( "%s:%s" % ( component, stage ) )
+    tags.append( "%s:%s" % ( component, gitCommit ) )
+    tags.append( "%s:%s-%s" % ( component, stage, buildTag ) )
+
+    return tags
+
+def lhBuildImageGetTarget( component, stage ):
+    # type: ( str, str ) -> str
+    return "%s-%s" % ( component, stage )
+
+def lhBuildImageGetBuildArgs( gitCommit, buildTag ):
+    # type: ( str, str ) -> Dict[ str, str ]
+    args = {}
+
+    args[ "GIT_COMMIT" ] = gitCommit
+    args[ "BUILD_TAG" ] = buildTag
+
+    return args
+
+
+def lhCheckStage( stage ):
+    # type: ( str ) -> None
+    if stage not in lhStages:
+        fail( "lhCheckStage: '%s' is not a valid stage, must be one of %s" % ( stage, lhStages ) )
+    
+    return
+
+def lhBuildImage( dockerfilePath, component, stage, gitCommit, buildTag, **kwargs ):
+    # type: ( str, str, str, str, str, Dict[ str, any ] ) -> None
+    # kwargs passed directly to docker_build as **kwargs
+
+    lhBuildArgs=lhBuildImageGetBuildArgs( gitCommit, buildTag )
+    lhTarget=lhBuildImageGetTarget( component, stage )
+    lhTags=lhBuildImageGetTags( component, stage, gitCommit, buildTag )
+
+    if "ref" in kwargs:
+        fail( "lhQuickBuildImage: 'ref' cannot be in kwargs")
+
+    if "dockerfile" in kwargs:
+        fail( "lhQuickBuildImage: 'dockerfile' cannot be in kwargs")
+
+    if "target" in kwargs:
+        fail( "lhQuickBuildImage: 'target' cannot be in kwargs")
+
+    lhCheckStage( stage )
+
+    buildArgs = kwargs.pop( "build_args", {} )
+    extraTag = kwargs.pop( "extra_tag", [] )
+
+    lhBuildArgs.update(buildArgs)
+
+    if type( extraTag ) == "list":
+        lhTags.extend( extraTag )
+    else:
+        lhTags.append( extraTag )
+
+    kwargs[ "build_args" ] = lhBuildArgs
+    kwargs[ "extra_tag" ] = lhTags
+
+    if "context" not in kwargs:
+        kwargs[ "context" ] = "."
+
+    docker_build( 
+        component,                  # ref
+        dockerfile=dockerfilePath,  # dockerfile
+        target=lhTarget,            # target
+        **kwargs,                   # ee
+    )
+
+    return
+
+def lhQuickBuildImage( component, cfg={}, **kwargs ):
+    lhBuildImage( 
+        "./Dockerfile",
+        component,
+        lhGetFromConfigOrEnv( cfg, LHBUILD_STAGE_CFG_NAME, LHBUILD_STAGE_ENV_NAME, "dist" ),
+        lhGetGitCommit(),
+        lhGetFromConfigOrEnv( cfg, LHBUILD_TAG_CFG_NAME, LHBUILD_TAG_ENV_NAME, "local" ),
+        **kwargs,
+    )
+
+    return
+
+def lhGetNoOpYaml( component ):
+    # type: ( str ) -> str
+    return '''# https://github.com/tilt-dev/tilt/issues/4070#issuecomment-1099250184
+# This is a no op Job, we're doing this so we can gain the benefits of Tilt
+# auto-building the local image for us
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: %s-no-op
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+      - name: %s-no-op
+        image: %s
+      restartPolicy: Never
+''' % ( component, component, component )
+
+
+def lhQuickBuildImageNoK8( component, cfg={}, **kwargs ):
+    # type: ( str, Dict[ str, Union[ str, bool ] ], str, Dict[ str, any ] ) -> None
+    lhQuickBuildImage( component, cfg, **kwargs )
+
+    k8s_yaml( blob( lhGetNoOpYaml( component ) ) )
+
+    return 
