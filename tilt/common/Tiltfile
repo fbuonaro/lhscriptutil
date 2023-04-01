@@ -71,8 +71,8 @@ def lhCheckStage( stage ):
     
     return
 
-def lhBuildImage( dockerfilePath, component, stage, gitCommit, buildTag, **kwargs ):
-    # type: ( str, str, str, str, str, Dict[ str, any ] ) -> None
+def lhBuildImage( component, stage, gitCommit, buildTag, **kwargs ):
+    # type: ( str, str, str, str, Dict[ str, any ] ) -> None
     # kwargs passed directly to docker_build as **kwargs
 
     lhBuildArgs=lhBuildImageGetBuildArgs( gitCommit, buildTag )
@@ -81,9 +81,6 @@ def lhBuildImage( dockerfilePath, component, stage, gitCommit, buildTag, **kwarg
 
     if "ref" in kwargs:
         fail( "lhBuildImage: 'ref' cannot be in kwargs")
-
-    if "dockerfile" in kwargs:
-        fail( "lhBuildImage: 'dockerfile' cannot be in kwargs")
 
     if "target" in kwargs:
         fail( "lhBuildImage: 'target' cannot be in kwargs")
@@ -106,9 +103,11 @@ def lhBuildImage( dockerfilePath, component, stage, gitCommit, buildTag, **kwarg
     if "context" not in kwargs:
         kwargs[ "context" ] = "."
 
+    if "dockerfile" not in kwargs:
+        kwargs[ "dockerfile" ] = "./Dockerfile"
+
     docker_build( 
         component,                  # ref
-        dockerfile=dockerfilePath,  # dockerfile
         target=lhTarget,            # target
         **kwargs,                   # ee
     )
@@ -116,8 +115,10 @@ def lhBuildImage( dockerfilePath, component, stage, gitCommit, buildTag, **kwarg
     return
 
 def lhQuickBuildImage( component, cfg={}, **kwargs ):
+    # type: ( str, Dict[ str, any ], Dict[ str, any ] ) -> None
+    # kwargs passed directly to docker_build as **kwargs
+
     lhBuildImage( 
-        "./Dockerfile",
         component,
         lhGetFromConfigOrEnv( cfg, LHBUILD_STAGE_CFG_NAME, LHBUILD_STAGE_ENV_NAME, "dist" ),
         lhGetGitCommit(),

@@ -14,6 +14,9 @@ RUN yum -y --enablerepo=extras install epel-release && \
 ##################################################################################
 # STAGE 1 - build tools and libraries needed to build ${component}
 ##################################################################################
+### deps ###
+FROM lhscriptutil:dist-${BUILD_TAG} AS lhscriptutil_dist_build
+### deps ###
 FROM ${component}-base-env as ${component}-build-env
 
 # for compiling and unit testing
@@ -26,8 +29,8 @@ RUN yum -y install \
         rpm-build && \
     yum clean all
 
-# ADD ./modules/lhscriptutil/scripts/refreshOrSetupLHDistYumRepo.sh /refreshOrSetupLHDistYumRepo.sh
-# RUN /refreshOrSetupLHDistYumRepo.sh
+COPY --from=lhscriptutil_dist_build /lhscriptutil/ /lhscriptutil/
+RUN /lhscriptutil/scripts/refreshOrSetupLHDistYumRepo.sh
 
 ENTRYPOINT [ "bash" ]
 
@@ -48,7 +51,7 @@ FROM ${component}-build-env as ${component}-build
 #     make && \
 #     make test && \
 #     make package && \
-#     /refreshOrSetupLHDistYumRepo.sh
+#     /lhscriptutil/scripts/refreshOrSetupLHDistYumRepo.sh
 
 ENV BUILD_TAG=${BUILD_TAG}
 LABEL build_tag="${BUILD_TAG}"
@@ -65,22 +68,19 @@ FROM ${component}-build as ${component}-test-env
 #     make install && \
 #     ldconfig 
 
+
 ##################################################################################
 # STAGE 4 - the base image with additional built runtime dependencies and 
 #           ${component} binaries includes nothing from build-env
 ##################################################################################
 FROM ${component}-base-env as ${component}-main
 
-# COPY --from=${component}-build /etc/ /etc/
-# COPY --from=${component}-build /opt/ /opt/
-# COPY --from=${component}-build /usr/ /usr/
-# COPY --from=${component}-build /${component}/ /${component}/
-# RUN cd /${component}/build && \
-#     make install && \
-#     make package && \
-#     ldconfig && \
-#     cd / && \
-#     rm -rf /${component}
+COPY --from=${component}-build /lhdist/ /lhdist/
+COPY --from=${component}-build-env /lhscriptutil/ /lhscriptutil/
+RUN /lhscriptutil/scripts/refreshOrSetupLHDistYumRepo.sh
+RUN yum -y repo-pkgs lhdistrepo install && \
+    ldconfig && \
+    yum clean all
 
 ##################################################################################
 # STAGE 5 - the base image with /lhdist populated with custom packages required to
@@ -88,4 +88,4 @@ FROM ${component}-base-env as ${component}-main
 ##################################################################################
 FROM ${component}-base-env as ${component}-dist
 
-COPY --from=${component}-build /lhdist/ /lhdist/
+COPY --from=${component}-main /lhdist/ /lhdist/
