@@ -113,7 +113,7 @@ endmacro()
 
 macro(lh_add_pkgconfig)
     # configure pc file
-    configure_file( "${CMAKE_SOURCE_DIR}/modules/lhscriptutil/cmake/pkgconfig/component.pc.in"
+    configure_file( "/lhscriptutil/cmake/pkgconfig/component.pc.in"
                     "${CMAKE_CURRENT_BINARY_DIR}/${PC_INSTALL_FILENAME}"
                     @ONLY )
     # install pc file
@@ -121,7 +121,7 @@ macro(lh_add_pkgconfig)
             DESTINATION "${PC_INSTALL_DIR}"
             COMPONENT ${LH_COMPONENT_NAME} )
     # configure pc relocation script
-    configure_file( "${CMAKE_SOURCE_DIR}/modules/lhscriptutil/cmake/pkgconfig/rpm_relocate_pc.sh.in"
+    configure_file( "/lhscriptutil/cmake/pkgconfig/rpm_relocate_pc.sh.in"
                     "${CMAKE_CURRENT_BINARY_DIR}/rpm_relocate_pc.sh"
                     @ONLY )
 endmacro()
