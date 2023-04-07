@@ -190,7 +190,8 @@ def lhGitCheckoutAndLoad( repoUri, gitDir, cfg={} ):
     if lhGitDepsWhitelist != None and ( repoName not in lhGitDepsWhitelist.split( ',' ) ):
         return
 
-    git_checkout( repoUri, checkout_dir=gitDir )
-    load_dynamic( os.path.join( gitDir, repoName, 'Tiltfile' ) )
+    repoDir = os.path.join( gitDir, repoName )
+    git_checkout( repoUri, checkout_dir=repoDir )
+    load_dynamic( os.path.join( repoDir, 'Tiltfile' ) )
 
     return
