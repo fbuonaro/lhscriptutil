@@ -1,3 +1,5 @@
+load( "ext://git_resource", "git_checkout" )
+
 lhStages = { 
     "build-env": None, 
     "build": None, 
@@ -21,6 +23,9 @@ config.define_string(
     args = False, 
     usage = "target stage to build, must be one of %s; env variable %s could be used instead" % ( lhStages, LHBUILD_STAGE_ENV_NAME ) 
 )
+
+LHBUILD_REPODEPS_WHITELIST_ENV_NAME = "LHBUILD_REPODEPS_WHITELIST"
+LHBUILD_REPODEPS_WHITELIST_CFG_NAME = "lhbuild_repodeps_whitelist"
 
 def lhGetGitCommit():
     # type: () -> str
@@ -156,3 +161,36 @@ def lhQuickBuildImageNoK8( component, cfg={}, **kwargs ):
     k8s_yaml( blob( lhGetNoOpYaml( component ) ) )
 
     return 
+
+def extractGitRepoName( repoUri ):
+    # type: ( str ) -> str
+    # extracts the repo name from a git uri i.e. <url>/repo_name.git#branch or <url>/repo_name#branch 
+    # returns repo_name
+
+    return os.path.basename( repoUri ).split( '.' )[ 0 ].split( '#' )[ 0 ]
+
+def lhGitCheckoutAndLoad( repoUri, gitDir, cfg={} ):
+    # type: ( str, str ) -> None
+    # accepts a git repo uri and a path to a directory then first checks out the repo to the directory
+    # and then dynamic loads the repo
+    # requires ext://git_resource
+    # environment variable 'LHBUILD_REPODEPS_WHITELIST' can be used to selectively suppress the checkout/load
+    # for some repos and enable it for others. 'LHBUILD_REPODEPS_WHITELIST' can be a comma separated list of
+    # repo names (i.e. basename or uri file without extension)
+    # config variable 'lhbuild_repodeps_whitelist' can be used in the same way for the same purpose
+
+    repoName = extractGitRepoName( repoUri )
+
+    lhGitDepsWhitelist = lhGetFromConfigOrEnv( 
+        cfg, 
+        LHBUILD_REPODEPS_WHITELIST_CFG_NAME, 
+        LHBUILD_REPODEPS_WHITELIST_ENV_NAME, 
+        None,
+    )
+    if lhGitDepsWhitelist != None and ( repoName not in lhGitDepsWhitelist.split( ',' ) ):
+        return
+
+    git_checkout( repoUri, checkout_dir=gitDir )
+    load_dynamic( os.path.join( gitDir, repoName, 'Tiltfile' ) )
+
+    return
