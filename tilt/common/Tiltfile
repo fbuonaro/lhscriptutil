@@ -191,7 +191,8 @@ def lhGitCheckoutAndLoad( repoUri, gitDir, cfg={} ):
         return
 
     repoDir = os.path.join( gitDir, repoName )
-    git_checkout( repoUri, checkout_dir=repoDir )
+    if not os.path.exists( repoDir ):
+        git_checkout( repoUri, checkout_dir=repoDir )
     load_dynamic( os.path.join( repoDir, 'Tiltfile' ) )
 
     return
