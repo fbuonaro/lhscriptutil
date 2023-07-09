@@ -113,9 +113,9 @@ macro(lh_add_install_library)
     configure_file( "/lhscriptutil/cmake/ld.so.conf.d/lib.conf.in"
                     "${CMAKE_CURRENT_BINARY_DIR}/${LH_LIB_NAME}_${PROJECT_VERSION}.conf"
                     @ONLY )
-    # install ld.so.conf.d conf file
+    # install ld.so.conf.d conf file, not relocatable
     install( FILES "${CMAKE_CURRENT_BINARY_DIR}/${LH_LIB_NAME}_${PROJECT_VERSION}.conf"
-             DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/ld.so.conf.d"
+             DESTINATION "/${CMAKE_INSTALL_SYSCONFDIR}/ld.so.conf.d"
              COMPONENT ${LH_COMPONENT_NAME} )
 endmacro()
 
