@@ -48,3 +48,5 @@
 /modules/
 !/modules/lhscriptutil/
 /build/
+
+!cmake/ld.so.conf.d
