@@ -109,6 +109,14 @@ macro(lh_add_install_library)
                     ${CMAKE_COMMAND}
                     -D "CMAKE_INSTALL_COMPONENT=${LH_COMPONENT_NAME}"
                     -P "cmake_install.cmake" )
+    # configure ld.so.conf.d conf file
+    configure_file( "/lhscriptutil/cmake/ld.so.conf.d/lib.conf.in"
+                    "${CMAKE_CURRENT_BINARY_DIR}/${LH_LIB_NAME}_${PROJECT_VERSION}.conf"
+                    @ONLY )
+    # install ld.so.conf.d conf file
+    install( FILES "${CMAKE_CURRENT_BINARY_DIR}/${LH_LIB_NAME}_${PROJECT_VERSION}.conf"
+             DESTINATION "${SYSCONFDIR}/ld.so.conf.d"
+             COMPONENT ${LH_COMPONENT_NAME} )
 endmacro()
 
 macro(lh_add_pkgconfig)
