@@ -115,7 +115,7 @@ macro(lh_add_install_library)
                     @ONLY )
     # install ld.so.conf.d conf file
     install( FILES "${CMAKE_CURRENT_BINARY_DIR}/${LH_LIB_NAME}_${PROJECT_VERSION}.conf"
-             DESTINATION "${SYSCONFDIR}/ld.so.conf.d"
+             DESTINATION "${CMAKE_INSTALL_SYSCONFDIR}/ld.so.conf.d"
              COMPONENT ${LH_COMPONENT_NAME} )
 endmacro()
 
