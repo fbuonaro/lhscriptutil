@@ -38,3 +38,5 @@
 **/.mypy_cache*
 **/.tox*
 **/__pycache__*
+
+!cmake/ld.so.conf.d
