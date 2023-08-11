@@ -115,11 +115,9 @@ def getStageOverride( component, defaultStage ):
     
     return defaultStage
 
-def lhBuildImage( component, stage, gitCommit, buildTag, **kwargs ):
-    # type: ( str, str, str, str, Dict[ str, any ] ) -> None
+def lhBuildImage( component, stage, gitCommit, buildTag, force_stage=False, **kwargs ):
+    # type: ( str, str, str, str, bool, Dict[ str, any ] ) -> None
     # kwargs passed directly to docker_build as **kwargs
-
-    stage = getStageOverride( component, stage )
 
     lhBuildArgs=lhBuildImageGetBuildArgs( gitCommit, buildTag )
     lhTarget=lhBuildImageGetTarget( component, stage )
@@ -131,10 +129,12 @@ def lhBuildImage( component, stage, gitCommit, buildTag, **kwargs ):
     if "target" in kwargs:
         fail( "lhBuildImage: 'target' cannot be in kwargs")
 
-    lhCheckStage( stage )
-
     buildArgs = kwargs.pop( "build_args", {} )
     extraTag = kwargs.pop( "extra_tag", [] )
+
+    if not force_stage:
+        stage = getStageOverride( component, stage )
+    lhCheckStage( stage )
 
     lhBuildArgs.update(buildArgs)
 
@@ -169,6 +169,7 @@ def lhQuickBuildImage( component, cfg={}, **kwargs ):
         lhGetFromConfigOrEnv( cfg, LHBUILD_STAGE_CFG_NAME, LHBUILD_STAGE_ENV_NAME, "dist" ),
         lhGetGitCommit(),
         lhGetFromConfigOrEnv( cfg, LHBUILD_TAG_CFG_NAME, LHBUILD_TAG_ENV_NAME, "local" ),
+        force_stage=cfg.get('force_stage', False),
         **kwargs,
     )
 
