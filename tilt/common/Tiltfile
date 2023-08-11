@@ -31,6 +31,15 @@ LHBUILD_MODULES_DIR_ENV_NAME = "TILT_GIT_RESOURCE_CHECKOUT_DIR"
 
 LHBUILD_TOPLEVEL_COMPONENT_ENV_NAME = "LHBUILD_TOPLEVEL_COMPONENT"
 
+def syncCfgToEnv( cfg, cfgVarName, envVarName, defaultVal ):
+    if not os.getenv( envVarName, None ):
+        os.putenv( envVarName, cfg.get( cfgVarName, defaultVal ) )
+
+def lhSetAllEnvFromCfg( cfg ):
+    syncCfgToEnv( cfg, LHBUILD_STAGE_CFG_NAME, LHBUILD_STAGE_ENV_NAME, "dist" )
+    syncCfgToEnv( cfg, LHBUILD_TAG_CFG_NAME, LHBUILD_TAG_ENV_NAME, "local" )
+    os.putenv( "LHBUILD_GIT_COMMIT", lhGetGitCommit() )
+
 def lhGetGitCommit():
     # type: () -> str
     return str( local( "git rev-parse HEAD", quiet = True, echo_off = True) ).strip() 
