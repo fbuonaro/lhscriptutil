@@ -27,6 +27,10 @@ config.define_string(
 LHBUILD_REPODEPS_WHITELIST_ENV_NAME = "LHBUILD_REPODEPS_WHITELIST"
 LHBUILD_REPODEPS_WHITELIST_CFG_NAME = "lhbuild_repodeps_whitelist"
 
+LHBUILD_MODULES_DIR_ENV_NAME = "TILT_GIT_RESOURCE_CHECKOUT_DIR"
+
+LHBUILD_TOPLEVEL_COMPONENT_ENV_NAME = "LHBUILD_TOPLEVEL_COMPONENT"
+
 def lhGetGitCommit():
     # type: () -> str
     return str( local( "git rev-parse HEAD", quiet = True, echo_off = True) ).strip() 
@@ -76,9 +80,46 @@ def lhCheckStage( stage ):
     
     return
 
+def getModulesGitDir():
+    # type () -> str
+    if not os.getenv( LHBUILD_MODULES_DIR_ENV_NAME, default = None ):
+        os.putenv( LHBUILD_MODULES_DIR_ENV_NAME, os.path.abspath( "./modules" ) )
+    gitDir = os.getenv( LHBUILD_MODULES_DIR_ENV_NAME, default = None )
+    if not gitDir:
+        fail( "failed to set modules checkout dir" )
+
+    return gitDir
+
+def trySetTopLevelComponent( component ):
+    # type (str) -> None
+    # if the top level component is already set, then does nothing
+
+    if not os.getenv( LHBUILD_TOPLEVEL_COMPONENT_ENV_NAME, default = None ):
+        os.putenv( LHBUILD_TOPLEVEL_COMPONENT_ENV_NAME, component )
+    topLevelComponent = os.getenv( LHBUILD_TOPLEVEL_COMPONENT_ENV_NAME, default = None )
+    if not topLevelComponent:
+        fail( "failed to try-set/get toplevel component" )
+
+def getTopLevelComponent():
+    # type () -> str
+    topLevelComponent = os.getenv( LHBUILD_TOPLEVEL_COMPONENT_ENV_NAME, default = None )
+    if not topLevelComponent:
+        fail( "failed to try-set/get toplevel component" )
+
+    return topLevelComponent
+
+def getStageOverride( component, defaultStage ):
+    # type: (str) -> str
+    if component != getTopLevelComponent():
+        return 'dist'
+    
+    return defaultStage
+
 def lhBuildImage( component, stage, gitCommit, buildTag, **kwargs ):
     # type: ( str, str, str, str, Dict[ str, any ] ) -> None
     # kwargs passed directly to docker_build as **kwargs
+
+    stage = getStageOverride( component, stage )
 
     lhBuildArgs=lhBuildImageGetBuildArgs( gitCommit, buildTag )
     lhTarget=lhBuildImageGetTarget( component, stage )
